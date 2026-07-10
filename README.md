@@ -45,4 +45,4 @@ Since this tool relies entirely on native browser features, there is no installa
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/yourusername/web-security-checklist.git](https://github.com/yourusername/web-security-checklist.git)
+   gh repo clone Sudo-Pratik-X/Web-Application-Security-Testing-Checklist
