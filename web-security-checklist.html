@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Web Application Security Testing Checklist</title>
+<style>
+  :root{
+    --bg:#0f1420;
+    --panel:#161d2e;
+    --panel-alt:#1c2438;
+    --border:#2a3450;
+    --text:#e7ebf5;
+    --muted:#8b95ad;
+    --accent:#5b8cff;
+    --accent-soft:rgba(91,140,255,0.12);
+    --good:#3ecf8e;
+    --warn:#f5a623;
+    --danger:#ff5d6c;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 800px at 10% -10%, #1a2338 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+    padding:24px;
+    min-height:100vh;
+  }
+  .wrap{max-width:980px;margin:0 auto;}
+  header{
+    margin-bottom:18px;
+  }
+  h1{
+    font-size:1.5rem;
+    margin:0 0 4px 0;
+    letter-spacing:0.2px;
+  }
+  .sub{color:var(--muted);font-size:0.9rem;margin-bottom:18px;}
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:16px;
+    position:sticky;
+    top:0;
+    background:linear-gradient(var(--bg) 80%, transparent);
+    padding:10px 0;
+    z-index:5;
+  }
+  input[type="text"]{
+    flex:1;
+    min-width:200px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 14px;
+    border-radius:10px;
+    font-size:0.9rem;
+    outline:none;
+  }
+  input[type="text"]:focus{border-color:var(--accent);}
+  button{
+    background:var(--panel-alt);
+    color:var(--text);
+    border:1px solid var(--border);
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:0.85rem;
+    white-space:nowrap;
+    transition:0.15s ease;
+  }
+  button:hover{border-color:var(--accent);color:#fff;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#0b1120;font-weight:600;}
+  button.primary:hover{filter:brightness(1.08);color:#0b1120;}
+  button.ghost-danger:hover{border-color:var(--danger);color:var(--danger);}
+
+  .progress-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .ring{
+    width:64px;height:64px;border-radius:50%;
+    background:conic-gradient(var(--good) calc(var(--pct,0)*1%), var(--panel-alt) 0);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .ring span{
+    width:50px;height:50px;border-radius:50%;
+    background:var(--panel);
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.8rem;font-weight:700;
+  }
+  .progress-stats{flex:1;min-width:180px;}
+  .progress-stats .count{font-size:1.05rem;font-weight:600;}
+  .progress-stats .label{color:var(--muted);font-size:0.8rem;}
+  .bar-bg{
+    height:8px;border-radius:5px;background:var(--panel-alt);
+    overflow:hidden;margin-top:6px;
+  }
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--good));
+    width:0%;
+    transition:width 0.25s ease;
+  }
+
+  .category{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    margin-bottom:12px;
+    overflow:hidden;
+  }
+  .cat-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    cursor:pointer;
+    user-select:none;
+    gap:10px;
+  }
+  .cat-head:hover{background:var(--panel-alt);}
+  .cat-title{
+    display:flex;align-items:center;gap:10px;font-weight:600;font-size:0.95rem;
+  }
+  .cat-badge{
+    font-size:0.72rem;color:var(--muted);
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    padding:2px 9px;border-radius:20px;
+    font-weight:500;
+  }
+  .chevron{
+    color:var(--muted);
+    transition:transform 0.2s ease;
+    font-size:0.8rem;
+  }
+  .category.collapsed .chevron{transform:rotate(-90deg);}
+  .cat-items{
+    padding:4px 10px 12px 10px;
+  }
+  .category.collapsed .cat-items{display:none;}
+
+  .item{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:9px 10px;
+    border-radius:8px;
+    font-size:0.88rem;
+  }
+  .item:hover{background:var(--panel-alt);}
+  .item input[type="checkbox"]{
+    appearance:none;
+    -webkit-appearance:none;
+    width:19px;height:19px;
+    border-radius:5px;
+    border:1.5px solid var(--border);
+    background:var(--panel-alt);
+    cursor:pointer;
+    flex-shrink:0;
+    margin-top:1px;
+    position:relative;
+    transition:0.12s ease;
+  }
+  .item input[type="checkbox"]:checked{
+    background:var(--good);
+    border-color:var(--good);
+  }
+  .item input[type="checkbox"]:checked::after{
+    content:"";
+    position:absolute;
+    left:5px;top:1px;
+    width:5px;height:10px;
+    border:solid #0b1120;
+    border-width:0 2px 2px 0;
+    transform:rotate(45deg);
+  }
+  .item label{
+    cursor:pointer;
+    line-height:1.4;
+  }
+  .item.checked label{
+    color:var(--muted);
+    text-decoration:line-through;
+  }
+  .item.hidden{display:none;}
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.78rem;
+    margin-top:26px;
+    padding-bottom:10px;
+  }
+  .empty-msg{
+    text-align:center;color:var(--muted);padding:30px;display:none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🛡️ Web Application Security Testing Checklist</h1>
+    <div class="sub">Deduplicated &amp; organized pentest checklist — check items off as you complete them.</div>
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search checklist items...">
+    <button id="expandAll">Expand all</button>
+    <button id="collapseAll">Collapse all</button>
+    <button id="checkAllVisible" class="primary">Check all visible</button>
+    <button id="resetAll" class="ghost-danger">Reset all</button>
+  </div>
+
+  <div class="progress-card">
+    <div class="ring" id="ring"><span id="ringPct">0%</span></div>
+    <div class="progress-stats">
+      <div class="count"><span id="doneCount">0</span> / <span id="totalCount">0</span> checks completed</div>
+      <div class="label">Overall progress</div>
+      <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+    </div>
+  </div>
+
+  <div id="checklist"></div>
+  <div class="empty-msg" id="emptyMsg">No items match your search.</div>
+
+  <footer>Progress is kept only for this browser session — it will reset if you reload the page.</footer>
+</div>
+
+<script>
+const DATA = [
+  { cat: "1. Network, TLS &amp; Server Config", items: [
+    "Server banner disclosure","Weak TLS cipher suites","Deprecated TLS versions","Weak SSL configuration",
+    "Sweet32 vulnerability","Open ports","Service version exposure","OS fingerprinting",
+    "HTTP methods allowed","HTTP TRACE method","Unencrypted communication (HTTP)","SSL stripping vulnerability",
+    "HTTP downgrade attack","Missing security headers","Clickjacking","Host header injection"
+  ]},
+  { cat: "2. Information Disclosure &amp; Recon", items: [
+    "PII data in response","PII data in plaintext","Certificate validity","Directory enumeration",
+    "Backup files exposure","Git (.git) exposure",".env file exposure","robots.txt leakage","sitemap.xml exposure",
+    "Verbose error handling","Admin panel exposure","Hidden API endpoints in JS","Hardcoded API keys",
+    "Internal URLs exposure","Source map exposure","Sensitive logic in frontend","Swagger/OpenAPI exposure",
+    "GraphQL introspection","Subdomain enumeration","Subdomain takeover","Cloud bucket exposure",
+    "Third-party integration exposure","Email leakage","Password in plaintext",
+    "Direct URL access to uploaded files / predictable file paths"
+  ]},
+  { cat: "3. CORS, Smuggling &amp; Redirects", items: [
+    "Misconfigured Access-Control-Allow-Origin (CORS)","Request smuggling","CRLF injection","Open redirect"
+  ]},
+  { cat: "4. Authentication &amp; Login", items: [
+    "SQL injection in login","NoSQL injection in login","Username enumeration","Timing-based enumeration",
+    "Brute force protection","Password spraying","Default credentials","CAPTCHA bypass",
+    "Login bypass logic flaw","Disabled account login","Weak password policy","Password reuse",
+    "Password disclosure/exposure","Change password without old password","Password stored client-side",
+    "Account lockout policy","Sign up using existing email ID","Back button refresh attack"
+  ]},
+  { cat: "5. Password Reset Flow", items: [
+    "Predictable reset token","Reset token reuse","Missing token expiry","User/email enumeration via reset",
+    "Reset poisoning","Host header injection in reset"
+  ]},
+  { cat: "6. Session Management", items: [
+    "Session ID issued before login","Session fixation","Session ID in URL","Session leakage",
+    "Session reuse across devices","Session ID predictability","Session timeout (idle)",
+    "Absolute session timeout","Session reuse after logout","Concurrent sessions allowed",
+    "Session invalidation on password change","Session replay attack","Access after logout"
+  ]},
+  { cat: "7. Cookies", items: [
+    "HttpOnly flag missing","Secure flag missing","SameSite attribute missing","Cookie scope misconfiguration",
+    "Cookie modification / tampering"
+  ]},
+  { cat: "8. OTP &amp; MFA", items: [
+    "OTP brute force","OTP reuse","OTP expiry","OTP predictability","OTP bypass","OTP leakage",
+    "OTP not session-bound","OTP rate limiting","MFA bypass via API","MFA disable without re-auth",
+    "MFA enrolment without verification","MFA code reuse across sessions"
+  ]},
+  { cat: "9. JWT &amp; Tokens", items: [
+    "JWT tampering (role change)","JWT alg=none attack","Weak JWT secret","JWT expiration bypass",
+    "Missing token signature validation","Token reuse","Token rotation","Refresh token abuse",
+    "Token leakage in URL","Token storage in localStorage"
+  ]},
+  { cat: "10. IDOR &amp; Access Control", items: [
+    "IDOR via GET parameter","IDOR via POST body","IDOR via PUT request","IDOR via DELETE request",
+    "IDOR in file download","IDOR in file upload reference","IDOR via query params","Sequential ID enumeration",
+    "Unauthorized access to admin endpoints","Role parameter manipulation","Hidden admin APIs",
+    "Privilege escalation via JWT","Privilege escalation via cookies","Privilege escalation via API mismatch",
+    "Privilege escalation via parameter pollution","Access to other users' profiles",
+    "Access to other users' orders","Access to other users' messages","Access to other users' settings",
+    "Access to other users' files","Role-based access control bypass","Direct access to restricted pages",
+    "Broken object-level authorization (BOLA)","Broken function-level authorization (BFLA)"
+  ]},
+  { cat: "11. Injection Vulnerabilities", items: [
+    "Boolean-based SQL injection","Error-based SQL injection","Time-based SQL injection","UNION-based SQL injection",
+    "SQLi in JSON input","SQLi in HTTP headers (User-Agent, Referer, Cookie)","Cross-Site Scripting (XSS)",
+    "XSS filter bypass","XSS via file upload (SVG)","Command injection","SSRF","SSRF filter bypass",
+    "Server-Side Template Injection (SSTI)","XML External Entity (XXE)","LDAP injection","XPath injection",
+    "Path traversal","Local File Inclusion (LFI)","Remote File Inclusion (RFI)","Insecure deserialization",
+    "CSV injection"
+  ]},
+  { cat: "12. API Security", items: [
+    "API versioning issues","Unauthenticated APIs","Hidden/undocumented API endpoints","Missing authentication",
+    "Mass assignment","Parameter tampering","Missing rate limiting","HTTP method tampering",
+    "Excessive data exposure","JSON structure manipulation","Replay attack"
+  ]},
+  { cat: "13. CSRF", items: [
+    "CSRF vulnerability","CSRF protection bypass"
+  ]},
+  { cat: "14. Business Logic &amp; Payments", items: [
+    "Price manipulation","Negative payment amount","Duplicate transaction","Payment bypass",
+    "Currency manipulation","Unauthorized fund transfer","Transaction limit bypass",
+    "Race condition in fund transfer","Unauthorized transaction history access","Coupon reuse",
+    "Discount stacking abuse","Order placed without payment","Cart manipulation","Refund abuse",
+    "Unauthorized patient record access","Unauthorized prescription modification","Appointment booking bypass",
+    "Workflow step bypass","Business rule limit bypass"
+  ]},
+  { cat: "15. File Upload", items: [
+    "Double extension upload","Multiple extension upload","Case-sensitivity bypass","Trailing dot bypass",
+    "Null byte injection","Special character bypass","MIME type bypass","Magic byte bypass","Web shell upload",
+    "Zip Slip vulnerability","Upload without authentication","File size limit bypass",
+    "File type restriction bypass","Polyglot file upload","Metadata injection",
+    "Missing input length restriction","Improper input sanitization/validation"
+  ]},
+  { cat: "16. OAuth", items: [
+    "Authorization code interception","Missing state parameter (CSRF on OAuth)","Open redirect via redirect_uri",
+    "redirect_uri manipulation/bypass","Authorization code reuse","OAuth token leakage in referrer headers",
+    "Account takeover via email claim manipulation"
+  ]}
+];
+
+const checklistEl = document.getElementById('checklist');
+const state = {}; // id -> boolean, in-memory only (no persistence across reloads)
+let idCounter = 0;
+
+function buildChecklist(){
+  DATA.forEach((group, gi) => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'category';
+    catDiv.dataset.catIndex = gi;
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.innerHTML = `
+      <div class="cat-title">
+        <span class="chevron">▼</span>
+        <span>${group.cat}</span>
+      </div>
+      <span class="cat-badge" data-badge="${gi}">0/${group.items.length}</span>
+    `;
+    head.addEventListener('click', () => catDiv.classList.toggle('collapsed'));
+
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = 'cat-items';
+
+    group.items.forEach(text => {
+      const id = 'chk_' + (idCounter++);
+      state[id] = false;
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.dataset.text = text.toLowerCase();
+      row.dataset.cat = gi;
+      row.innerHTML = `
+        <input type="checkbox" id="${id}">
+        <label for="${id}">${text}</label>
+      `;
+      const cb = row.querySelector('input');
+      cb.addEventListener('change', () => {
+        state[id] = cb.checked;
+        row.classList.toggle('checked', cb.checked);
+        updateCategoryBadge(gi);
+        updateProgress();
+      });
+      itemsWrap.appendChild(row);
+    });
+
+    catDiv.appendChild(head);
+    catDiv.appendChild(itemsWrap);
+    checklistEl.appendChild(catDiv);
+  });
+
+  document.getElementById('totalCount').textContent = idCounter;
+  updateProgress();
+  DATA.forEach((_, gi) => updateCategoryBadge(gi));
+}
+
+function updateCategoryBadge(gi){
+  const rows = checklistEl.querySelectorAll(`.item[data-cat="${gi}"]`);
+  let done = 0;
+  rows.forEach(r => { if(r.querySelector('input').checked) done++; });
+  const badge = document.querySelector(`.cat-badge[data-badge="${gi}"]`);
+  if(badge) badge.textContent = `${done}/${rows.length}`;
+}
+
+function updateProgress(){
+  const all = Object.values(state);
+  const total = all.length;
+  const done = all.filter(v => v).length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('doneCount').textContent = done;
+  document.getElementById('ringPct').textContent = pct + '%';
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('ring').style.setProperty('--pct', pct);
+}
+
+// Search filter
+document.getElementById('searchBox').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  let anyVisible = false;
+  document.querySelectorAll('.category').forEach(cat => {
+    let catHasVisible = false;
+    cat.querySelectorAll('.item').forEach(row => {
+      const match = !q || row.dataset.text.includes(q);
+      row.classList.toggle('hidden', !match);
+      if(match) catHasVisible = true;
+    });
+    cat.style.display = catHasVisible ? '' : 'none';
+    if(q && catHasVisible) cat.classList.remove('collapsed');
+    if(catHasVisible) anyVisible = true;
+  });
+  document.getElementById('emptyMsg').style.display = anyVisible ? 'none' : 'block';
+});
+
+document.getElementById('expandAll').addEventListener('click', () => {
+  document.querySelectorAll('.category').forEach(c => c.classList.remove('collapsed'));
+});
+document.getElementById('collapseAll').addEventListener('click', () => {
+  document.querySelectorAll('.category').forEach(c => c.classList.add('collapsed'));
+});
+document.getElementById('checkAllVisible').addEventListener('click', () => {
+  document.querySelectorAll('.item').forEach(row => {
+    if(row.classList.contains('hidden') || row.style.display === 'none') return;
+    if(row.offsetParent === null && !row.closest('.category')) return;
+    const cb = row.querySelector('input');
+    if(!cb.checked){
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change'));
+    }
+  });
+});
+document.getElementById('resetAll').addEventListener('click', () => {
+  if(!confirm('Reset all checked items?')) return;
+  document.querySelectorAll('.item input').forEach(cb => {
+    if(cb.checked){
+      cb.checked = false;
+      cb.dispatchEvent(new Event('change'));
+    }
+  });
+});
+
+buildChecklist();
+</script>
+</body>
+</html>
